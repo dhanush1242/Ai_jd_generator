@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.db.dependencies import get_db
-from app.schemas.recruiter import (
+from app.dto.recruiter import (
     RecruiterCreate,
     RecruiterResponse,
 )
@@ -16,7 +16,7 @@ from app.core.security import (
     verify_password,
 )
 
-from app.schemas.auth import (
+from app.dto.auth import (
     RecruiterLogin,
     TokenResponse,
 )

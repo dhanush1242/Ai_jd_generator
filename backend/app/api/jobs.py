@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.api.dependencies import get_current_recruiter
 from app.db.dependencies import get_db
 from app.models.recruiter import Recruiter
-from app.schemas.job_parameter import (
+from app.dto.job_parameter import (
     JobParameterCreate,
     JobParameterResponse,
 )

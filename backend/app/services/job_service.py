@@ -2,8 +2,7 @@ from sqlalchemy.orm import Session
 
 from app.models.job_parameter import JobParameter
 from app.models.recruiter import Recruiter
-from app.schemas.job_parameter import JobParameterCreate
-
+from app.dto.job_parameter import JobParameterCreate
 
 def create_job(
     db: Session,
@@ -31,3 +30,17 @@ def create_job(
     db.refresh(job)
 
     return job
+
+def get_recruiter_jobs(
+    db: Session,
+    recruiter_id: int,
+):
+    jobs = (
+        db.query(JobParameter)
+        .filter(
+            JobParameter.recruiter_id == recruiter_id
+        )
+        .all()
+    )
+
+    return jobs

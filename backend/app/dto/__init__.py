@@ -1,9 +1,9 @@
-from app.schemas.auth import (
+from app.dto.auth import (
     RecruiterLogin,
     TokenResponse,
 )
 
-from app.schemas.recruiter import (
+from app.dto.recruiter import (
     RecruiterCreate,
     RecruiterResponse,
 )
