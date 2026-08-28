@@ -2,6 +2,7 @@ from fastapi import FastAPI
 
 from app.api.recruiter import router as recruiter_router
 from app.api.jobs import router as jobs_router
+from app.api.job_description import router as jd_router
 
 app = FastAPI(
     title="AI JD Generator API",
@@ -16,6 +17,11 @@ app.include_router(
 
 app.include_router(
     jobs_router,
+    prefix="/api",
+)
+
+app.include_router(
+    jd_router,
     prefix="/api",
 )
 

@@ -61,3 +61,14 @@ class JobParameterResponse(BaseModel):
     model_config = ConfigDict(
         from_attributes=True
     )
+
+class JobParameterUpdate(BaseModel):
+    job_title: str | None = None
+    required_skills: str | None = None
+    education_qualification: str | None = None
+    experience: str | None = None
+    location: str | None = None
+    passedout_year: int | None = None
+    work_mode: str | None = None
+    job_type: str | None = None
+    package: str | None = None

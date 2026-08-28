@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.core.security import hash_password
 from app.models.recruiter import Recruiter
-from app.schemas.recruiter import RecruiterCreate
+from app.dto.recruiter import RecruiterCreate
 
 
 def get_recruiter_by_email(
