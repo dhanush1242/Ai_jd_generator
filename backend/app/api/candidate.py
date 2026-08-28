@@ -2,54 +2,53 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.db.dependencies import get_db
-from app.dto.recruiter import (
-    RecruiterCreate,
-    RecruiterResponse,
-)
-from app.services.recruiter_service import (
-    create_recruiter,
-    get_recruiter_by_email,
-    get_recruiter_by_mobile,
+from app.services.candidate_service import (
+    create_candidate,
+    get_candidate_by_email,
+    get_candidate_by_mobile,
 )
 from app.core.security import (
     create_access_token,
-    verify_password,
+    verify_password
 )
-
-from app.dto.auth import (
-    RecruiterLogin,
-    TokenResponse,
+from app.dto.candidate import (
+    CandidateCreate,
+    CandidateResponse,
+    CandidateLogin,
 )
-
-from app.api.dependencies import get_current_recruiter
-from app.models.recruiter import Recruiter
+from app.dto.auth import TokenResponse
+from app.api.dependencies import get_current_candidate
+from app.models.candidate import Candidate
 
 router = APIRouter(
-    prefix="/recruiters",
-    tags=["Recruiters"],
+    prefix="/candidates",
+    tags=["Candidates"],
 )
 
 
 @router.post(
     "/register",
-    response_model=RecruiterResponse,
+    response_model=CandidateResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def register_recruiter(
-    recruiter_data: RecruiterCreate,
+def register_candidate(
+    candidate_data: CandidateCreate,
     db: Session = Depends(get_db),
 ):
-    existing_email = get_recruiter_by_email(db, recruiter_data.organisation_email,)
+    existing_email = get_candidate_by_email(
+        db,
+        candidate_data.email,
+    )
 
     if existing_email:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Organisation email already registered",
+            detail="Email already registered",
         )
 
-    existing_mobile = get_recruiter_by_mobile(
+    existing_mobile = get_candidate_by_mobile(
         db,
-        recruiter_data.mobile_number,
+        candidate_data.mobile_number,
     )
 
     if existing_mobile:
@@ -58,27 +57,27 @@ def register_recruiter(
             detail="Mobile number already registered",
         )
 
-    recruiter = create_recruiter(
+    candidate = create_candidate(
         db,
-        recruiter_data,
+        candidate_data,
     )
 
-    return recruiter
+    return candidate
 
 @router.post(
     "/login",
     response_model=TokenResponse,
 )
-def login_recruiter(
-    login_data: RecruiterLogin,
+def login_candidate(
+    login_data: CandidateLogin,
     db: Session = Depends(get_db),
 ):
-    recruiter = get_recruiter_by_email(
+    candidate = get_candidate_by_email(
         db,
-        login_data.organisation_email,
+        login_data.email,
     )
 
-    if recruiter is None:
+    if candidate is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
@@ -86,7 +85,7 @@ def login_recruiter(
 
     password_is_valid = verify_password(
         login_data.password,
-        recruiter.hashed_password,
+        candidate.hashed_password,
     )
 
     if not password_is_valid:
@@ -96,7 +95,7 @@ def login_recruiter(
         )
 
     access_token = create_access_token(
-        subject=str(recruiter.recruiter_id)
+        subject=str(candidate.candidate_id)
     )
 
     return TokenResponse(
@@ -106,11 +105,11 @@ def login_recruiter(
 
 @router.get(
     "/me",
-    response_model=RecruiterResponse,
+    response_model=CandidateResponse,
 )
 def get_my_profile(
-    current_recruiter: Recruiter = Depends(
-        get_current_recruiter
+    current_candidate: Candidate = Depends(
+        get_current_candidate
     ),
 ):
-    return current_recruiter
+    return current_candidate
