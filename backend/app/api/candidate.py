@@ -7,6 +7,10 @@ from app.dto.candidate import (CandidateCreate, CandidateResponse, CandidateLogi
 from app.dto.auth import TokenResponse
 from app.api.dependencies import get_current_candidate
 from app.models.candidate import Candidate
+from app.api.dependencies import get_current_candidate
+from app.dto.candidate_details import (CandidateDetailsCreate, CandidateDetailsResponse,)
+from app.models.candidate import Candidate
+from app.services.candidate_details_service import (create_candidate_details, get_candidate_details,)
 
 router = APIRouter(prefix="/candidates", tags=["Candidates"],)
 
@@ -30,3 +34,11 @@ def login_candidate(login_data: CandidateLogin, db: Session = Depends(get_db),):
 
 @router.get("/me", response_model=CandidateResponse,)
 def get_my_profile(current_candidate: Candidate = Depends(get_current_candidate),):return current_candidate
+
+@router.post("/details", response_model=CandidateDetailsResponse, status_code=status.HTTP_201_CREATED,)
+def create_my_details(details_data: CandidateDetailsCreate, current_candidate: Candidate = Depends(get_current_candidate), db: Session = Depends(get_db),):
+    return create_candidate_details(db=db, details_data=details_data, candidate=current_candidate,)
+
+@router.get("/details", response_model=CandidateDetailsResponse,)
+def get_my_details(current_candidate: Candidate = Depends(get_current_candidate), db: Session = Depends(get_db),):
+    return get_candidate_details(db=db, candidate=current_candidate,)
