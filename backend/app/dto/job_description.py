@@ -1,12 +1,8 @@
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
 
-
 class JobDescriptionUpdate(BaseModel):
-    updated_jd: str = Field(
-        min_length=1,
-    )
-
+    updated_jd: str = Field(min_length=1,)
 
 class JobDescriptionResponse(BaseModel):
     jd_id: int
@@ -19,6 +15,4 @@ class JobDescriptionResponse(BaseModel):
     updated_at: datetime
     published_at: datetime | None = None
 
-    model_config = ConfigDict(
-        from_attributes=True
-    )
+    model_config = ConfigDict(from_attributes=True)
