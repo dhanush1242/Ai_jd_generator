@@ -28,6 +28,6 @@ def login_recruiter(login_data: RecruiterLogin, db: Session = Depends(get_db),):
     access_token = create_access_token(subject=str(recruiter.recruiter_id))
     return TokenResponse(access_token=access_token, token_type="bearer",)
 
-@router.get("/me", response_model=RecruiterResponse,)
+@router.get("/profile", response_model=RecruiterResponse,)
 def get_my_profile(current_recruiter: Recruiter = Depends(get_current_recruiter),):
     return current_recruiter
