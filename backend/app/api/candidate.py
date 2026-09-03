@@ -12,6 +12,12 @@ from app.api.dependencies import get_current_candidate
 from app.dto.candidate_details import (CandidateDetailsCreate, CandidateDetailsResponse,)
 from app.models.candidate import Candidate
 from app.services.candidate_details_service import (create_candidate_details, get_candidate_details,)
+from app.dto.candidate_job import CandidateJobResponse
+from app.services.candidate_job_service import get_published_jobs
+from app.dto.bookmark import BookmarkResponse
+from app.services.bookmark_service import (add_bookmark, get_candidate_bookmarks, remove_bookmark,)
+from app.dto.application import (ApplicationResponse, CandidateApplicationResponse,)
+from app.services.application_service import (apply_for_job, get_candidate_applications,)
 
 router = APIRouter(prefix="/candidates", tags=["Candidates"],)
 
@@ -34,7 +40,8 @@ def login_candidate(login_data: CandidateLogin, db: Session = Depends(get_db),):
     return TokenResponse(access_token=access_token, token_type="bearer",)
 
 @router.get("/profile", response_model=CandidateResponse,)
-def get_my_profile(current_candidate: Candidate = Depends(get_current_candidate),):return current_candidate
+def get_my_profile(current_candidate: Candidate = Depends(get_current_candidate),):
+    return current_candidate
 
 @router.post("/details", response_model=CandidateDetailsResponse, status_code=status.HTTP_201_CREATED,)
 def create_my_details(details_data: CandidateDetailsCreate, current_candidate: Candidate = Depends(get_current_candidate), db: Session = Depends(get_db),):
@@ -98,3 +105,95 @@ def update_my_details(
     db.commit()
     db.refresh(details)
     return details
+
+@router.get(
+    "/jobs",
+    response_model=list[CandidateJobResponse],
+)
+def get_candidate_jobs(
+    location: str | None = None,
+    experience: str | None = None,
+    skills: str | None = None,
+    current_candidate: Candidate = Depends(get_current_candidate),
+    db: Session = Depends(get_db),
+):
+    return get_published_jobs(
+        db=db,
+        location=location,
+        experience=experience,
+        skills=skills,
+    )
+
+@router.post(
+    "/jobs/{job_id}/bookmark",
+    response_model=BookmarkResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def bookmark_job(
+    job_id: int,
+    current_candidate: Candidate = Depends(get_current_candidate),
+    db: Session = Depends(get_db),
+):
+    return add_bookmark(
+        db=db,
+        candidate_id=current_candidate.candidate_id,
+        job_id=job_id,
+    )
+
+
+@router.get(
+    "/bookmarks",
+    response_model=list[BookmarkResponse],
+)
+def get_my_bookmarks(
+    current_candidate: Candidate = Depends(get_current_candidate),
+    db: Session = Depends(get_db),
+):
+    return get_candidate_bookmarks(
+        db=db,
+        candidate_id=current_candidate.candidate_id,
+    )
+
+
+@router.delete(
+    "/jobs/{job_id}/bookmark",
+)
+def delete_bookmark(
+    job_id: int,
+    current_candidate: Candidate = Depends(get_current_candidate),
+    db: Session = Depends(get_db),
+):
+    return remove_bookmark(
+        db=db,
+        candidate_id=current_candidate.candidate_id,
+        job_id=job_id,
+    )
+
+@router.post(
+    "/jobs/{job_id}/apply",
+    response_model=ApplicationResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def apply_job(
+    job_id: int,
+    current_candidate: Candidate = Depends(get_current_candidate),
+    db: Session = Depends(get_db),
+):
+    return apply_for_job(
+        db=db,
+        candidate_id=current_candidate.candidate_id,
+        job_id=job_id,
+    )
+
+@router.get(
+    "/applications",
+    response_model=list[CandidateApplicationResponse],
+)
+def get_my_applications(
+    current_candidate: Candidate = Depends(get_current_candidate),
+    db: Session = Depends(get_db),
+):
+    return get_candidate_applications(
+        db=db,
+        candidate_id=current_candidate.candidate_id,
+    )
