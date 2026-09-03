@@ -26,7 +26,6 @@ if not DATABASE_URL:
         f"DATABASE_URL is not configured. Expected .env at: {ENV_FILE}"
     )
 
-
 # --------------------------------------------------
 # Import database models AFTER loading .env
 # --------------------------------------------------
@@ -34,6 +33,7 @@ if not DATABASE_URL:
 from app.db.base import Base
 
 from app.models import (
+    Admin,
     Candidate,
     CandidateDetails,
     JobDescription,
@@ -60,7 +60,6 @@ config.set_main_option(
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
-
 
 # --------------------------------------------------
 # SQLAlchemy metadata

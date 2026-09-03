@@ -1,21 +1,84 @@
 import os
-from fastapi.staticfiles import StaticFiles
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+
 from app.api.recruiter import router as recruiter_router
 from app.api.jobs import router as jobs_router
 from app.api.job_description import router as jd_router
 from app.api.candidate import router as candidate_router
+from app.api.admin import router as admin_router
 
-app = FastAPI(title="AI JD Generator API", version="1.0.0",)
+
+app = FastAPI(
+    title="AI JD Generator API",
+    version="1.0.0",
+)
+
+
+# ==================================================
+# CORS
+# ==================================================
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# ==================================================
+# UPLOADS
+# ==================================================
+
 os.makedirs("uploads", exist_ok=True)
 
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=False, allow_methods=["*"], allow_headers=["*"],)
-app.include_router(recruiter_router, prefix="/api",)
-app.include_router(jobs_router, prefix="/api",)
-app.include_router(jd_router, prefix="/api",)
-app.include_router(candidate_router, prefix="/api",)
+app.mount(
+    "/uploads",
+    StaticFiles(directory="uploads"),
+    name="uploads",
+)
+
+
+# ==================================================
+# ROUTERS
+# ==================================================
+
+app.include_router(
+    recruiter_router,
+    prefix="/api",
+)
+
+app.include_router(
+    jobs_router,
+    prefix="/api",
+)
+
+app.include_router(
+    jd_router,
+    prefix="/api",
+)
+
+app.include_router(
+    candidate_router,
+    prefix="/api",
+)
+
+app.include_router(
+    admin_router,
+    prefix="/api",
+)
+
+
+# ==================================================
+# ROOT
+# ==================================================
 
 @app.get("/")
-def root(): return {"message": "AI JD Generator API is running"}
+def root():
+    return {
+        "message": "AI JD Generator API is running"
+    }
