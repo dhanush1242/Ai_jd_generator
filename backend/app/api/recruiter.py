@@ -7,6 +7,26 @@ from app.core.security import (create_access_token, verify_password,)
 from app.dto.auth import (RecruiterLogin, TokenResponse,)
 from app.api.dependencies import get_current_recruiter
 from app.models.recruiter import Recruiter
+from app.dto.application import (
+    RecruiterApplicationResponse,
+    ApplicationStatusUpdate,
+    ApplicationResponse,
+)
+
+from app.services.recruiter_application_service import (
+    get_job_applications,
+    update_application_status,
+    get_application_resume,
+)
+from app.dto.application_note import (
+    ApplicationNoteCreate,
+    ApplicationNoteResponse,
+)
+
+from app.services.application_note_service import (
+    add_application_note,
+    get_application_notes,
+)
 
 router = APIRouter(prefix="/recruiters", tags=["Recruiters"],)
 
@@ -28,6 +48,86 @@ def login_recruiter(login_data: RecruiterLogin, db: Session = Depends(get_db),):
     access_token = create_access_token(subject=str(recruiter.recruiter_id))
     return TokenResponse(access_token=access_token, token_type="bearer",)
 
-@router.get("/me", response_model=RecruiterResponse,)
+@router.get("/profile", response_model=RecruiterResponse,)
 def get_my_profile(current_recruiter: Recruiter = Depends(get_current_recruiter),):
     return current_recruiter
+
+@router.get(
+    "/jobs/{job_id}/applications",
+    response_model=list[RecruiterApplicationResponse],
+)
+def view_job_applications(
+    job_id: int,
+    current_recruiter: Recruiter = Depends(get_current_recruiter),
+    db: Session = Depends(get_db),
+):
+    return get_job_applications(
+        db=db,
+        recruiter_id=current_recruiter.recruiter_id,
+        job_id=job_id,
+    )
+
+@router.put(
+    "/applications/{application_id}/status",
+    response_model=ApplicationResponse,
+)
+def change_application_status(
+    application_id: int,
+    payload: ApplicationStatusUpdate,
+    current_recruiter: Recruiter = Depends(get_current_recruiter),
+    db: Session = Depends(get_db),
+):
+    return update_application_status(
+        db=db,
+        recruiter_id=current_recruiter.recruiter_id,
+        application_id=application_id,
+        new_status=payload.status,
+    )
+
+@router.post(
+    "/applications/{application_id}/notes",
+    response_model=ApplicationNoteResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_application_note(
+    application_id: int,
+    payload: ApplicationNoteCreate,
+    current_recruiter: Recruiter = Depends(get_current_recruiter),
+    db: Session = Depends(get_db),
+):
+    return add_application_note(
+        db=db,
+        recruiter_id=current_recruiter.recruiter_id,
+        application_id=application_id,
+        notes=payload.notes,
+    )
+
+
+@router.get(
+    "/applications/{application_id}/notes",
+    response_model=list[ApplicationNoteResponse],
+)
+def view_application_notes(
+    application_id: int,
+    current_recruiter: Recruiter = Depends(get_current_recruiter),
+    db: Session = Depends(get_db),
+):
+    return get_application_notes(
+        db=db,
+        recruiter_id=current_recruiter.recruiter_id,
+        application_id=application_id,
+    )
+
+@router.get(
+    "/applications/{application_id}/resume",
+)
+def view_application_resume(
+    application_id: int,
+    current_recruiter: Recruiter = Depends(get_current_recruiter),
+    db: Session = Depends(get_db),
+):
+    return get_application_resume(
+        db=db,
+        recruiter_id=current_recruiter.recruiter_id,
+        application_id=application_id,
+    )
