@@ -1,7 +1,5 @@
 from datetime import datetime
-
 from pydantic import BaseModel
-
 
 class CandidateJobResponse(BaseModel):
     job_id: int
@@ -14,7 +12,6 @@ class CandidateJobResponse(BaseModel):
     work_mode: str
     job_type: str
     package: str | None
-
     jd_id: int
     version_number: int
     job_description: str

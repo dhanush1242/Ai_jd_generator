@@ -1,11 +1,8 @@
 from datetime import datetime
-
 from pydantic import BaseModel
-
 
 class ApplicationNoteCreate(BaseModel):
     notes: str
-
 
 class ApplicationNoteResponse(BaseModel):
     note_id: int
@@ -15,6 +12,4 @@ class ApplicationNoteResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}

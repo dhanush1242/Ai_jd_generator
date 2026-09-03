@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 from typing import List
 from app.api.dependencies import get_current_recruiter
 from app.db.dependencies import get_db
-from app.models.recruiter import Recruiter
 from app.dto.job_description import (JobDescriptionResponse, JobDescriptionUpdate,)
+from app.models.recruiter import Recruiter
 from app.services.job_description_service import (generate_jd, regenerate_jd, get_jd_versions, update_jd_version, publish_jd_version,)
 
 router = APIRouter(prefix="/jobs", tags=["JD"],)
