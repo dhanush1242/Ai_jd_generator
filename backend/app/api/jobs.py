@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.orm import Session
 from app.api.dependencies import get_current_recruiter
 from app.db.dependencies import get_db
-from app.models.recruiter import Recruiter
 from app.dto.job_parameter import (JobParameterCreate, JobParameterResponse, JobParameterUpdate,)
+from app.models.recruiter import Recruiter
 from app.services.job_service import (create_job, get_recruiter_jobs, get_job_by_id, update_job, delete_job)
 
 router = APIRouter(prefix="/jobs", tags=["Jobs"],)

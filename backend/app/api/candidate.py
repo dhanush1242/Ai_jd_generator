@@ -3,21 +3,23 @@ import shutil
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from uuid import uuid4
 from sqlalchemy.orm import Session
-from app.db.dependencies import get_db
-from app.services.candidate_service import (create_candidate, get_candidate_by_email, get_candidate_by_mobile,)
+from app.api.dependencies import get_current_candidate
 from app.core.security import (create_access_token, verify_password)
+from app.db.dependencies import get_db
 from app.dto.candidate import (CandidateCreate, CandidateResponse, CandidateLogin,)
 from app.dto.auth import TokenResponse
-from app.api.dependencies import get_current_candidate
 from app.dto.candidate_details import (CandidateDetailsCreate, CandidateDetailsResponse,)
+from app.dto.candidate_job import CandidateJobResponse
+from app.dto.bookmark import BookmarkResponse
+from app.dto.application import (ApplicationResponse, CandidateApplicationResponse,)
+from app.dto.chat import ChatResponse, ChatRequest
 from app.models.candidate import Candidate
 from app.services.candidate_details_service import (create_candidate_details, get_candidate_details,)
-from app.dto.candidate_job import CandidateJobResponse
 from app.services.candidate_job_service import get_published_jobs
-from app.dto.bookmark import BookmarkResponse
 from app.services.bookmark_service import (add_bookmark, get_candidate_bookmarks, remove_bookmark,)
-from app.dto.application import (ApplicationResponse, CandidateApplicationResponse,)
 from app.services.application_service import (apply_for_job, get_candidate_applications,)
+from app.services.candidate_service import (create_candidate, get_candidate_by_email, get_candidate_by_mobile,)
+from mcp_client.agent import run_agent
 
 router = APIRouter(prefix="/candidates", tags=["Candidates"],)
 
@@ -106,10 +108,7 @@ def update_my_details(
     db.refresh(details)
     return details
 
-@router.get(
-    "/jobs",
-    response_model=list[CandidateJobResponse],
-)
+@router.get("/jobs", response_model=list[CandidateJobResponse],)
 def get_candidate_jobs(
     location: str | None = None,
     experience: str | None = None,
@@ -117,83 +116,29 @@ def get_candidate_jobs(
     current_candidate: Candidate = Depends(get_current_candidate),
     db: Session = Depends(get_db),
 ):
-    return get_published_jobs(
-        db=db,
-        location=location,
-        experience=experience,
-        skills=skills,
-    )
+    return get_published_jobs(db=db, location=location, experience=experience, skills=skills,)
 
-@router.post(
-    "/jobs/{job_id}/bookmark",
-    response_model=BookmarkResponse,
-    status_code=status.HTTP_201_CREATED,
-)
-def bookmark_job(
-    job_id: int,
-    current_candidate: Candidate = Depends(get_current_candidate),
-    db: Session = Depends(get_db),
-):
-    return add_bookmark(
-        db=db,
-        candidate_id=current_candidate.candidate_id,
-        job_id=job_id,
-    )
+@router.post("/jobs/{job_id}/bookmark", response_model=BookmarkResponse, status_code=status.HTTP_201_CREATED,)
+def bookmark_job(job_id: int, current_candidate: Candidate = Depends(get_current_candidate), db: Session = Depends(get_db),):
+    return add_bookmark(db=db, candidate_id=current_candidate.candidate_id, job_id=job_id,)
 
+@router.get("/bookmarks", response_model=list[BookmarkResponse],)
+def get_my_bookmarks(current_candidate: Candidate = Depends(get_current_candidate), db: Session = Depends(get_db),):
+    return get_candidate_bookmarks(db=db, candidate_id=current_candidate.candidate_id,)
 
-@router.get(
-    "/bookmarks",
-    response_model=list[BookmarkResponse],
-)
-def get_my_bookmarks(
-    current_candidate: Candidate = Depends(get_current_candidate),
-    db: Session = Depends(get_db),
-):
-    return get_candidate_bookmarks(
-        db=db,
-        candidate_id=current_candidate.candidate_id,
-    )
+@router.delete("/jobs/{job_id}/bookmark",)
+def delete_bookmark(job_id: int, current_candidate: Candidate = Depends(get_current_candidate), db: Session = Depends(get_db),):
+    return remove_bookmark(db=db, candidate_id=current_candidate.candidate_id, job_id=job_id,)
 
+@router.post("/jobs/{job_id}/apply", response_model=ApplicationResponse, status_code=status.HTTP_201_CREATED,)
+def apply_job(job_id: int, current_candidate: Candidate = Depends(get_current_candidate), db: Session = Depends(get_db),):
+    return apply_for_job(db=db, candidate_id=current_candidate.candidate_id, job_id=job_id,)
 
-@router.delete(
-    "/jobs/{job_id}/bookmark",
-)
-def delete_bookmark(
-    job_id: int,
-    current_candidate: Candidate = Depends(get_current_candidate),
-    db: Session = Depends(get_db),
-):
-    return remove_bookmark(
-        db=db,
-        candidate_id=current_candidate.candidate_id,
-        job_id=job_id,
-    )
+@router.get("/applications", response_model=list[CandidateApplicationResponse],)
+def get_my_applications(current_candidate: Candidate = Depends(get_current_candidate), db: Session = Depends(get_db),):
+    return get_candidate_applications(db=db, candidate_id=current_candidate.candidate_id,)
 
-@router.post(
-    "/jobs/{job_id}/apply",
-    response_model=ApplicationResponse,
-    status_code=status.HTTP_201_CREATED,
-)
-def apply_job(
-    job_id: int,
-    current_candidate: Candidate = Depends(get_current_candidate),
-    db: Session = Depends(get_db),
-):
-    return apply_for_job(
-        db=db,
-        candidate_id=current_candidate.candidate_id,
-        job_id=job_id,
-    )
-
-@router.get(
-    "/applications",
-    response_model=list[CandidateApplicationResponse],
-)
-def get_my_applications(
-    current_candidate: Candidate = Depends(get_current_candidate),
-    db: Session = Depends(get_db),
-):
-    return get_candidate_applications(
-        db=db,
-        candidate_id=current_candidate.candidate_id,
-    )
+@router.post("/chat", response_model=ChatResponse,)
+async def candidate_chat(request: ChatRequest, current_candidate: Candidate = Depends(get_current_candidate),):
+    response = await run_agent(user_message=request.message, role="candidate", user_id=current_candidate.candidate_id,)
+    return ChatResponse(response=response)

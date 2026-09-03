@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
+from app.dto.job_parameter import JobParameterCreate, JobParameterUpdate
 from app.models.job_parameter import JobParameter
 from app.models.recruiter import Recruiter
-from app.dto.job_parameter import JobParameterCreate, JobParameterUpdate
 
 def create_job(db: Session, job_data: JobParameterCreate, recruiter: Recruiter,) -> JobParameter:
     job = JobParameter(

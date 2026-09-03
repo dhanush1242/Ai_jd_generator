@@ -1,8 +1,8 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from app.core.security import hash_password
-from app.models.recruiter import Recruiter
 from app.dto.recruiter import RecruiterCreate
+from app.models.recruiter import Recruiter
 
 def get_recruiter_by_email(db: Session, email: str,) -> Recruiter | None:
     statement = select(Recruiter).where(Recruiter.organisation_email == email)
