@@ -11,7 +11,7 @@ from app.dto.job_description import (
 )
 from app.services.job_description_service import (
     generate_jd,
-    regenerate_jd,-
+    regenerate_jd,
     get_jd_versions,
     update_jd_version,
     publish_jd_version,

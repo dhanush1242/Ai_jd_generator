@@ -1,5 +1,4 @@
 import os
-
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -8,13 +7,22 @@ from dotenv import load_dotenv
 from pwdlib import PasswordHash
 
 
+# --------------------------------------------------
+# Load environment variables
+# --------------------------------------------------
+
 BASE_DIR = Path(__file__).resolve().parents[2]
 ENV_FILE = BASE_DIR / ".env"
 
 load_dotenv(ENV_FILE)
 
 
+# --------------------------------------------------
+# JWT configuration
+# --------------------------------------------------
+
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+
 JWT_ALGORITHM = os.getenv(
     "JWT_ALGORITHM",
     "HS256",
@@ -34,6 +42,10 @@ if not JWT_SECRET_KEY:
     )
 
 
+# --------------------------------------------------
+# Password hashing
+# --------------------------------------------------
+
 password_hash = PasswordHash.recommended()
 
 
@@ -45,22 +57,31 @@ def verify_password(
     plain_password: str,
     hashed_password: str,
 ) -> bool:
+
     return password_hash.verify(
         plain_password,
         hashed_password,
     )
 
 
+# --------------------------------------------------
+# Create JWT access token
+# --------------------------------------------------
+
 def create_access_token(
     subject: str,
+    role: str,
 ) -> str:
 
-    expire = datetime.now(timezone.utc) + timedelta(
+    expire = datetime.now(
+        timezone.utc
+    ) + timedelta(
         minutes=ACCESS_TOKEN_EXPIRE_MINUTES
     )
 
     payload = {
         "sub": subject,
+        "role": role,
         "exp": expire,
     }
 
@@ -70,7 +91,15 @@ def create_access_token(
         algorithm=JWT_ALGORITHM,
     )
 
-def decode_access_token(token: str) -> dict:
+
+# --------------------------------------------------
+# Decode JWT access token
+# --------------------------------------------------
+
+def decode_access_token(
+    token: str,
+) -> dict:
+
     return jwt.decode(
         token,
         JWT_SECRET_KEY,
