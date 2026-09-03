@@ -3,5 +3,13 @@ from app.models.job_parameter import JobParameter
 from app.models.job_description import JobDescription
 from app.models.candidate import Candidate
 from app.models.candidate_details import CandidateDetails
+from app.models.admin import Admin
 
-__all__ = ["Recruiter", "JobParameter", "JobDescription", "Candidate", "CandidateDetails",]
+__all__ = [
+    "Recruiter",
+    "JobParameter",
+    "JobDescription",
+    "Candidate",
+    "CandidateDetails",
+    "Admin",
+]
