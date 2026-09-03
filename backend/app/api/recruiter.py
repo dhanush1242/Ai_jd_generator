@@ -1,32 +1,47 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.api.dependencies import get_current_recruiter
+from app.core.security import create_access_token, verify_password
 from app.db.dependencies import get_db
 
 from app.dto.recruiter import (
     RecruiterCreate,
     RecruiterResponse,
 )
+from app.dto.auth import (
+    RecruiterLogin,
+    TokenResponse,
+)
+from app.dto.chat import ChatResponse, ChatRequest
+from app.dto.application_note import (
+    ApplicationNoteCreate,
+    ApplicationNoteResponse,
+)
+from app.dto.application import (
+    RecruiterApplicationResponse,
+    ApplicationStatusUpdate,
+    ApplicationResponse,
+)
+
+from app.models.recruiter import Recruiter
 
 from app.services.recruiter_service import (
     create_recruiter,
     get_recruiter_by_email,
     get_recruiter_by_mobile,
 )
-
-from app.core.security import (
-    create_access_token,
-    verify_password,
+from app.services.recruiter_application_service import (
+    get_job_applications,
+    update_application_status,
+    get_application_resume,
+)
+from app.services.application_note_service import (
+    add_application_note,
+    get_application_notes,
 )
 
-from app.dto.auth import (
-    RecruiterLogin,
-    TokenResponse,
-)
-
-from app.api.dependencies import get_current_recruiter
-
-from app.models.recruiter import Recruiter
+from mcp_client.agent import run_agent
 
 
 router = APIRouter(
@@ -125,3 +140,116 @@ def get_my_profile(
     ),
 ):
     return current_recruiter
+
+
+@router.get(
+    "/profile",
+    response_model=RecruiterResponse,
+)
+def get_recruiter_profile(
+    current_recruiter: Recruiter = Depends(
+        get_current_recruiter
+    ),
+):
+    return current_recruiter
+
+
+@router.get(
+    "/jobs/{job_id}/applications",
+    response_model=list[RecruiterApplicationResponse],
+)
+def view_job_applications(
+    job_id: int,
+    current_recruiter: Recruiter = Depends(get_current_recruiter),
+    db: Session = Depends(get_db),
+):
+    return get_job_applications(
+        db=db,
+        recruiter_id=current_recruiter.recruiter_id,
+        job_id=job_id,
+    )
+
+
+@router.put(
+    "/applications/{application_id}/status",
+    response_model=ApplicationResponse,
+)
+def change_application_status(
+    application_id: int,
+    payload: ApplicationStatusUpdate,
+    current_recruiter: Recruiter = Depends(get_current_recruiter),
+    db: Session = Depends(get_db),
+):
+    return update_application_status(
+        db=db,
+        recruiter_id=current_recruiter.recruiter_id,
+        application_id=application_id,
+        new_status=payload.status,
+    )
+
+
+@router.post(
+    "/applications/{application_id}/notes",
+    response_model=ApplicationNoteResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_application_note(
+    application_id: int,
+    payload: ApplicationNoteCreate,
+    current_recruiter: Recruiter = Depends(get_current_recruiter),
+    db: Session = Depends(get_db),
+):
+    return add_application_note(
+        db=db,
+        recruiter_id=current_recruiter.recruiter_id,
+        application_id=application_id,
+        notes=payload.notes,
+    )
+
+
+@router.get(
+    "/applications/{application_id}/notes",
+    response_model=list[ApplicationNoteResponse],
+)
+def view_application_notes(
+    application_id: int,
+    current_recruiter: Recruiter = Depends(get_current_recruiter),
+    db: Session = Depends(get_db),
+):
+    return get_application_notes(
+        db=db,
+        recruiter_id=current_recruiter.recruiter_id,
+        application_id=application_id,
+    )
+
+
+@router.get(
+    "/applications/{application_id}/resume",
+)
+def view_application_resume(
+    application_id: int,
+    current_recruiter: Recruiter = Depends(get_current_recruiter),
+    db: Session = Depends(get_db),
+):
+    return get_application_resume(
+        db=db,
+        recruiter_id=current_recruiter.recruiter_id,
+        application_id=application_id,
+    )
+
+
+@router.post(
+    "/chat",
+    response_model=ChatResponse,
+)
+async def recruiter_chat(
+    request: ChatRequest,
+    current_recruiter: Recruiter = Depends(get_current_recruiter),
+):
+    response = await run_agent(
+        user_message=request.message,
+        role="recruiter",
+        user_id=current_recruiter.recruiter_id,
+    )
+
+    return ChatResponse(response=response)

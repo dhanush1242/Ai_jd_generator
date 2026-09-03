@@ -16,6 +16,6 @@ class JobParameter(Base):
     work_mode: Mapped[str] = mapped_column(String(50), nullable=False,)
     job_type: Mapped[str] = mapped_column(String(50), nullable=False,)
     package: Mapped[str | None] = mapped_column(String(100), nullable=True,)
-    recruiter = relationship("Recruiter", back_populates="jobs",)
 
+    recruiter = relationship("Recruiter", back_populates="jobs",)
     job_descriptions = relationship("JobDescription", back_populates="job", cascade="all, delete-orphan",)
