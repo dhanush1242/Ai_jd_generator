@@ -51,7 +51,7 @@ def get_job_applications(db: Session, recruiter_id: int, job_id: int,):
     return result
 
 def update_application_status(db: Session, recruiter_id: int, application_id: int, new_status: str,):
-    allowed_statuses = {"applied", "shortlisted", "rejected",}
+    allowed_statuses = {"Applied", "Under Review", "Shortlisted", "Interview", "Offer", "Rejected",}
     if new_status not in allowed_statuses: raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid application status",)
 
     application = (db.query(Application).filter(Application.application_id == application_id).first())
