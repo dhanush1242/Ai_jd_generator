@@ -72,8 +72,6 @@ async def run_agent(user_message: str, role: str, user_id: int,) -> str:
                     "is required. "
 
                     "Only use information returned by the tools. "
-                    "Do not invent job details, application details, "
-                    "statuses, IDs, dates, or other information. "
 
                     "Never ask the user for their candidate ID "
                     "or recruiter ID because their identity is "
