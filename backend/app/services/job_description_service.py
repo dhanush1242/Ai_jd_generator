@@ -18,7 +18,7 @@ def generate_jd(db: Session, job_id: int, recruiter: Recruiter) -> JobDescriptio
 
     prompt = build_jd_prompt(job)
     response = client.chat.completions.create(
-        model="openai/gpt-oss-20b",
+        model="openai/gpt-oss-120b",
         messages=[
             {
                 "role": "system",
@@ -32,9 +32,11 @@ def generate_jd(db: Session, job_id: int, recruiter: Recruiter) -> JobDescriptio
                 "content": prompt,
             },
         ],
-        temperature=0.1,
+        temperature=0.3,
     )
-    ai_content = response.choices[0].message.content
+    ai_content = response.choices[0].message.content or ""
+
+
 
     generated_text = f"""
     # {job.job_title}
