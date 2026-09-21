@@ -16,5 +16,5 @@ ENV PATH="/app/.venv/bin:$PATH"
 
 EXPOSE 8000
 
-# 5. Run FastAPI
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# 5. Run both MCP server (background) and FastAPI (foreground)
+CMD ["sh", "-c", "python -m mcp_server.server & uvicorn app.main:app --host 0.0.0.0 --port 8000"]

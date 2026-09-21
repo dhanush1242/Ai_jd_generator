@@ -6,7 +6,8 @@ from groq import Groq
 from mcp.client import Client
 
 load_dotenv()
-MCP_SERVER_URL = "http://127.0.0.1:9000/mcp"
+MCP_SERVER_URL = os.getenv("MCP_SERVER_URL", "http://127.0.0.1:9000/mcp")
+
 groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 def convert_mcp_tools_to_groq_tools(mcp_tools, role: str,):

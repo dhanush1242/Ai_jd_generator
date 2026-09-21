@@ -50,4 +50,4 @@ def get_application_notes_tool(recruiter_id: int, application_id: int,) -> list[
     return get_application_notes(recruiter_id=recruiter_id, application_id=application_id,)
 
 if __name__ == "__main__":
-    mcp.run(transport="streamable-http", host="127.0.0.1", port=9000,)
+    mcp.run(transport="streamable-http", host="0.0.0.0", port=9000,)
